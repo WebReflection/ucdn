@@ -91,9 +91,8 @@ module.exports = ({source, dest, headers}) => {
         readFile(asset + '.json', (err, data) => {
           // if there was no error, be sure the source file is still the same
           if (!err) {
-            const headers = parse(data);
             if (new Date(stats.mtimeMs).toUTCString() === IfModifiedSince) {
-              serveFile(res, asset, headers, IfNoneMatch);
+              serveFile(res, asset, parse(data), IfNoneMatch);
               return;
             }
           }
