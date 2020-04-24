@@ -11,8 +11,7 @@ import ucompress from 'ucompress';
 const {parse} = JSON;
 const {compressed} = ucompress;
 
-const FAVICON = '/favicon.ico';
-const FAVICON_LENGTH = -(FAVICON.length);
+const getPath = source => (source[0] === '/' ? source : resolve(source));
 
 /* istanbul ignore next */
 const internalServerError = res => {
@@ -30,27 +29,18 @@ const readAndServe = (res, asset, IfNoneMatch) => {
   });
 };
 
-const getPath = source => (source[0] === '/' ? source : resolve(source));
-
 const serveFile = (res, asset, headers, IfNoneMatch) => {
-  const {ETag, ['Last-Modified']: LastModified} = headers;
-  if (ETag === IfNoneMatch) {
+  if (headers.ETag === IfNoneMatch) {
     res.writeHead(304, headers);
     res.end();
   }
-  else {
-    res.writeHead(
-      200,
-      asset.slice(FAVICON_LENGTH) === FAVICON ?
-        {
-          'Content-Length': headers['Content-Length'],
-          'Content-Type': 'image/vnd.microsoft.icon',
-          'Last-Modified': LastModified
-        } :
-        headers
-    );
-    createReadStream(asset).pipe(res);
-  }
+  else
+    streamFile(res, asset, headers);
+};
+
+const streamFile = (res, asset, headers) => {
+  res.writeHead(200, headers);
+  createReadStream(asset).pipe(res);
 };
 
 export default ({source, dest, headers}) => {
@@ -69,61 +59,82 @@ export default ({source, dest, headers}) => {
           res.end();
         }
       }
+      else if (path === '/favicon.ico')
+        streamFile(res, original, {
+          'Content-Length': stats.size,
+          'Content-Type': 'image/vnd.microsoft.icon',
+          ...headers
+        });
       else {
         let asset = DEST + path;
         let compression = '';
         const {
           ['accept-encoding']: AcceptEncoding,
-          ['if-none-match']: IfNoneMatch
+          ['if-none-match']: IfNoneMatch,
+          ['if-modified-since']: IfModifiedSince
         } = req.headers;
-        if (
-          compressed.has(extname(path).toLowerCase()) &&
-          /\b(br|gzip|deflate)\b/.test(AcceptEncoding)
-        ) {
-          compression = '.' + RegExp.$1;
+        if (compressed.has(extname(path).toLowerCase())) {
+          switch (true) {
+            /* istanbul ignore next */
+            case /\bbr\b/.test(AcceptEncoding):
+              compression = '.br';
+              break;
+            case /\bgzip\b/.test(AcceptEncoding):
+              compression = '.gzip';
+              break;
+            /* istanbul ignore next */
+            case /\bdeflate\b/.test(AcceptEncoding):
+              compression = '.deflate';
+              break;
+          }
           asset += compression;
         }
         readFile(asset + '.json', (err, data) => {
-          if (err) {
-            const {length} = compression;
-            const compress = length ? asset.slice(0, -length) : asset;
-            const waitForIt = compress + '.wait';
-            mkdir(dirname(waitForIt), {recursive: true}, err => {
-              /* istanbul ignore next */
-              if (err)
-                internalServerError(res);
-              else if (existsSync(waitForIt))
-                watchFile(waitForIt, () => {
-                  unwatchFile(waitForIt);
-                  readAndServe(res, asset, IfNoneMatch);
-                });
-              else {
-                try {
-                  writeFileSync(waitForIt, path);
-                  ucompress(original, compress, options)
-                    .then(
-                      () => {
-                        unlink(waitForIt, err => {
-                          /* istanbul ignore next */
-                          if (err)
-                            internalServerError(res);
-                          else
-                            readAndServe(res, asset, IfNoneMatch);
-                        });
-                      },
-                      /* istanbul ignore next */
-                      () => unlink(waitForIt, () => internalServerError(res))
-                    );
-                }
-                catch (o_O) {
-                  /* istanbul ignore next */
-                  internalServerError(res);
-                }
-              }
-            });
+          // if there was no error, be sure the source file is still the same
+          if (!err) {
+            const headers = parse(data);
+            if (new Date(stats.mtimeMs).toUTCString() === IfModifiedSince) {
+              serveFile(res, asset, headers, IfNoneMatch);
+              return;
+            }
           }
-          else
-            serveFile(res, asset, parse(data), IfNoneMatch);
+          // if the file was modified, re-optimize it, assuming it changed too
+          const {length} = compression;
+          const compress = length ? asset.slice(0, -length) : asset;
+          const waitForIt = compress + '.wait';
+          mkdir(dirname(waitForIt), {recursive: true}, err => {
+            /* istanbul ignore next */
+            if (err)
+              internalServerError(res);
+            else if (existsSync(waitForIt))
+              watchFile(waitForIt, () => {
+                unwatchFile(waitForIt);
+                readAndServe(res, asset, IfNoneMatch);
+              });
+            else {
+              try {
+                writeFileSync(waitForIt, path);
+                ucompress(original, compress, options)
+                  .then(
+                    () => {
+                      unlink(waitForIt, err => {
+                        /* istanbul ignore next */
+                        if (err)
+                          internalServerError(res);
+                        else
+                          readAndServe(res, asset, IfNoneMatch);
+                      });
+                    },
+                    /* istanbul ignore next */
+                    () => unlink(waitForIt, () => internalServerError(res))
+                  );
+              }
+              catch (o_O) {
+                /* istanbul ignore next */
+                internalServerError(res);
+              }
+            }
+          });
         });
       }
     });

@@ -1,4 +1,4 @@
-const {createWriteStream, existsSync, unlinkSync} = require('fs');
+const {createWriteStream, statSync} = require('fs');
 const {join} = require('path');
 
 const createResponse = callback => {
@@ -28,6 +28,12 @@ const createRequest = url => ({
     },
     set ifNoneMatch(ETag) {
       this['if-none-match'] = ETag;
+    },
+    get ifModifiedSince() {
+      return this['if-modified-since'] || '';
+    },
+    set ifModifiedSince(value) {
+      this['if-modified-since'] = new Date(value).toUTCString();
     }
   }
 });
@@ -42,7 +48,7 @@ let requestHandler = cdn({
   }
 });
 
-Promise.resolve('µcdn')
+Promise.resolve('\x1b[1mµcdn\x1b[0m')
   .then(name => new Promise(resolve => {
     console.log(name);
     const path = '/favicon.ico?whatever';
@@ -123,6 +129,7 @@ Promise.resolve('µcdn')
     const request = createRequest(path);
     request.headers.acceptEncoding = 'gzip';
     request.headers.ifNoneMatch = '"553-Pqern58SsN5hVxit"';
+    request.headers.ifModifiedSince = statSync(join(__dirname, 'source', 'text.txt')).mtimeMs;
     requestHandler(
       request,
       createResponse(operations => {
@@ -151,6 +158,7 @@ Promise.resolve('µcdn')
     const request = createRequest(path);
     request.headers.acceptEncoding = 'gzip';
     request.headers.ifNoneMatch = '"553-Pqern58SsN5hVxit"';
+    request.headers.ifModifiedSince = (new Date).toISOString();
     requestHandler(
       request,
       createResponse(operations => {
@@ -163,6 +171,46 @@ Promise.resolve('µcdn')
         console.assert(headers['Content-Type'] === 'text/plain; charset=UTF-8', 'correct mime');
         console.assert(headers['ETag'] === '"553-Pqern58SsN5hVxit"', 'correct ETag');
         console.assert(!headers['X-Powered-By'], 'correct headers');
+        resolve(path);
+      })
+    );
+  }))
+  .then(name => new Promise(resolve => {
+    console.log(name);
+    const path = '/text.txt?last-time-maybe';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = '';
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 3356, 'correct length');
+        console.assert(headers['Content-Type'] === 'text/plain; charset=UTF-8', 'correct mime');
+        console.assert(headers['ETag'] === '"d1c-BnkCkKBJ6IhARixM"', 'correct ETag');
+        resolve(path);
+      })
+    );
+  }))
+  .then(name => new Promise(resolve => {
+    console.log(name);
+    const path = '/archibold.jpg';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = '';
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 37453, 'correct length');
+        console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
+        console.assert(headers['ETag'] === '"924d-mZQTlzKwWxkl3X0y"', 'correct ETag');
         resolve(path);
       })
     );
