@@ -9,12 +9,17 @@
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "test": "rm -rf test/dest && nyc node test/index.js"
   },
-  "keywords": ["ucompress", "CDN", "Express", "http"],
+  "keywords": [
+    "ucompress",
+    "CDN",
+    "Express",
+    "http"
+  ],
   "author": "Andrea Giammarchi",
   "license": "ISC",
   "devDependencies": {
     "ascjs": "^4.0.0",
-    "coveralls": "^3.0.13",
+    "coveralls": "^3.0.14",
     "nyc": "^15.0.1"
   },
   "module": "./esm/index.js",
@@ -24,7 +29,7 @@
     "default": "./cjs/index.js"
   },
   "dependencies": {
-    "ucompress": "^0.5.1"
+    "ucompress": "^0.6.1"
   },
   "repository": {
     "type": "git",
