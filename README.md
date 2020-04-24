@@ -4,6 +4,7 @@
 
 A [ucompress](https://github.com/WebReflection/ucompress#readme) based utility that accepts a configuration object with a `source` path, an optional `dest`, which fallbacks to the _temp_ folder, plus eventually extra `headers` property to pollute headers via `allow-origin` among other details.
 
+
 #### Example
 
 The following example will serve every file within any folder in the `source` directory, automatically optimizing on demand all operations, including the creation of _brotli_, _gzip_, or _deflate_.
@@ -44,6 +45,7 @@ app.get('/unknown', (req, res) => {
 app.listen(8080);
 
 ```
+
 
 #### Performance
 
