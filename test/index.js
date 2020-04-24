@@ -148,6 +148,7 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
   }))
   .then(name => {
     requestHandler = cdn({
+      cacheTimeout: 100,
       source: './test/source'
     });
     return name;
@@ -212,6 +213,46 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
         console.assert(headers['ETag'] === '"924d-mZQTlzKwWxkl3X0y"', 'correct ETag');
         resolve(path);
+      })
+    );
+  }))
+
+  .then(name => new Promise(resolve => {
+    console.log(name);
+    const path = '/benja-dark.svg';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = '';
+    let i = 0;
+    const done = () => {
+      if (++i === 2)
+        resolve(path);
+    };
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 2478, 'correct length');
+        console.assert(headers['Content-Type'] === 'image/svg+xml', 'correct mime');
+        console.assert(headers['ETag'] === '"9ae-WAa0uuWT+I9+hj77"', 'correct ETag');
+        done();
+      })
+    );
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 2478, 'correct length');
+        console.assert(headers['Content-Type'] === 'image/svg+xml', 'correct mime');
+        console.assert(headers['ETag'] === '"9ae-WAa0uuWT+I9+hj77"', 'correct ETag');
+        done();
       })
     );
   }))

@@ -3,6 +3,7 @@ const {join} = require('path');
 
 const cdn = require('../cjs');
 const callback = cdn({
+  cacheTimeout: 10000,
   source: join(__dirname, 'source'),
   dest: join(__dirname, 'dest')
 });
