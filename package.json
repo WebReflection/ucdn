@@ -29,7 +29,7 @@
     "default": "./cjs/index.js"
   },
   "dependencies": {
-    "ucompress": "^0.6.1"
+    "ucompress": "^0.7.0"
   },
   "repository": {
     "type": "git",
