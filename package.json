@@ -9,7 +9,7 @@
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "test": "rm -rf test/dest && nyc node test/index.js"
   },
-  "keywords": [],
+  "keywords": ["ucompress", "CDN", "Express", "http"],
   "author": "Andrea Giammarchi",
   "license": "ISC",
   "devDependencies": {
@@ -25,5 +25,13 @@
   },
   "dependencies": {
     "ucompress": "^0.5.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WebReflection/ucdn.git"
+  },
+  "bugs": {
+    "url": "https://github.com/WebReflection/ucdn/issues"
+  },
+  "homepage": "https://github.com/WebReflection/ucdn#readme"
 }
