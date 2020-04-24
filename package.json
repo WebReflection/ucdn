@@ -1,0 +1,29 @@
+{
+  "name": "ucdn",
+  "version": "0.0.0",
+  "description": "A µcompress based CDN utility, compatible with both Express and native http module",
+  "main": "./cjs/index.js",
+  "scripts": {
+    "build": "npm run cjs && npm run test",
+    "cjs": "ascjs --no-default esm cjs",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "test": "rm -rf test/dest && nyc node test/index.js"
+  },
+  "keywords": [],
+  "author": "Andrea Giammarchi",
+  "license": "ISC",
+  "devDependencies": {
+    "ascjs": "^4.0.0",
+    "coveralls": "^3.0.13",
+    "nyc": "^15.0.1"
+  },
+  "module": "./esm/index.js",
+  "type": "module",
+  "exports": {
+    "import": "./esm/index.js",
+    "default": "./cjs/index.js"
+  },
+  "dependencies": {
+    "ucompress": "^0.5.1"
+  }
+}
