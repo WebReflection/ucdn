@@ -1,12 +1,9 @@
-import {
-  createReadStream, mkdir, unlink,
-  existsSync, writeFileSync, watch
-} from 'fs';
+import {createReadStream, mkdir, unlink} from 'fs';
 import {tmpdir} from 'os';
 import {dirname, extname, join, resolve} from 'path';
-
 import ucompress from 'ucompress';
 
+import pack from './compress.js';
 import json from './json.js';
 import stat from './stat.js';
 
@@ -88,34 +85,17 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
               /* istanbul ignore if */
               if (err)
                 internalServerError(res);
-              else if (existsSync(waitForIt))
-                watch(waitForIt, andClose).on(
-                  'close',
-                  () => readAndServe(res, asset, CT, IfNoneMatch)
-                );
-              else {
-                try {
-                  writeFileSync(waitForIt, path);
-                  ucompress(original, compress, options)
-                    .then(
-                      () => {
-                        unlink(waitForIt, err => {
-                          /* istanbul ignore if */
-                          if (err)
-                            internalServerError(res);
-                          else
-                            readAndServe(res, asset, CT, IfNoneMatch);
-                        });
-                      },
-                      /* istanbul ignore next */
-                      () => unlink(waitForIt, () => internalServerError(res))
-                    );
-                }
-                catch (o_O) {
-                  /* istanbul ignore next */
-                  internalServerError(res);
-                }
-              }
+              else 
+                pack(original, compress, options, CT)
+                  .then(
+                    () => {
+                      readAndServe(res, asset, CT, IfNoneMatch);
+                    },
+                    /* istanbul ignore next */
+                    () => {
+                      unlink(waitForIt, () => internalServerError(res));
+                    }
+                  );
             });
           };
           json(asset, CT).then(
@@ -140,7 +120,3 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
     );
   };
 };
-
-function andClose() {
-  this.close();
-}

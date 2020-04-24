@@ -1,12 +1,10 @@
 'use strict';
-const {
-  createReadStream, mkdir, unlink, existsSync, writeFileSync, watch
-} = require('fs');
+const {createReadStream, mkdir, unlink} = require('fs');
 const {tmpdir} = require('os');
 const {dirname, extname, join, resolve} = require('path');
-
 const ucompress = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('ucompress'));
 
+const pack = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('./compress.js'));
 const json = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('./json.js'));
 const stat = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('./stat.js'));
 
@@ -88,34 +86,17 @@ module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
               /* istanbul ignore if */
               if (err)
                 internalServerError(res);
-              else if (existsSync(waitForIt))
-                watch(waitForIt, andClose).on(
-                  'close',
-                  () => readAndServe(res, asset, CT, IfNoneMatch)
-                );
-              else {
-                try {
-                  writeFileSync(waitForIt, path);
-                  ucompress(original, compress, options)
-                    .then(
-                      () => {
-                        unlink(waitForIt, err => {
-                          /* istanbul ignore if */
-                          if (err)
-                            internalServerError(res);
-                          else
-                            readAndServe(res, asset, CT, IfNoneMatch);
-                        });
-                      },
-                      /* istanbul ignore next */
-                      () => unlink(waitForIt, () => internalServerError(res))
-                    );
-                }
-                catch (o_O) {
-                  /* istanbul ignore next */
-                  internalServerError(res);
-                }
-              }
+              else 
+                pack(original, compress, options, CT)
+                  .then(
+                    () => {
+                      readAndServe(res, asset, CT, IfNoneMatch);
+                    },
+                    /* istanbul ignore next */
+                    () => {
+                      unlink(waitForIt, () => internalServerError(res));
+                    }
+                  );
             });
           };
           json(asset, CT).then(
@@ -140,7 +121,3 @@ module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
     );
   };
 };
-
-function andClose() {
-  this.close();
-}
