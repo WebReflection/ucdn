@@ -9,8 +9,8 @@ const clear = asset => {
 };
 
 export default (asset, compress, options, timeout = 1000) => (
-  $.get(asset) ||
-  $.set(asset, new Promise((res, rej) => {
+  $.get(compress) ||
+  $.set(compress, new Promise((res, rej) => {
     ucompress(asset, compress, options).then(
       () => {
         setTimeout(clear, timeout, asset);
