@@ -73,3 +73,9 @@ In every other case, using a minute, up to 10 minutes, as cache timeout, is rath
 ### As binary file
 
 It is possible to bootstrap a micro CDN right away via `npx ucdn`. Pass `--help` to see options.
+
+
+
+### Compatibility
+
+Beside own dependencies that might have different compatibility requirements, this module works in NodeJS 10 or higher.
