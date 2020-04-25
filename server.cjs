@@ -76,8 +76,13 @@ else {
     dest: dest ? resolve(process.cwd(), dest) : ''
   });
   createServer((req, res) => {
-    const {headers, url} = req;
-    handler({headers, url: url === '/' ? '/index.html' : url}, res);
+    handler(req, res, () => {
+      if (/\.\w+(?:\?.*)?$/.test(req.url))
+        res.writeHead(404);
+      else
+        res.writeHead(302, {'Location': 'index.html'});
+      res.end();
+    });
   })
   .listen(port, isMaster ? greetings : Object);
 }
