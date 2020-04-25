@@ -15,12 +15,13 @@ const internalServerError = res => {
   res.end();
 };
 
-const readAndServe = (res, asset, cacheTimeout, ETag, same) =>
+const readAndServe = (res, asset, cacheTimeout, ETag, same) => {
   json(asset, cacheTimeout).then(
     headers => serveFile(res, asset, headers, ETag, same),
     /* istanbul ignore next */
     () => internalServerError(res)
   );
+};
 
 const serveFile = (res, asset, headers, ETag, same) => {
   if (same && headers.ETag === ETag) {
@@ -84,7 +85,7 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
               /* istanbul ignore if */
               if (err)
                 internalServerError(res);
-              else 
+              else
                 pack(asset, original, compress, options, CT)
                   .then(
                     () => {
@@ -111,7 +112,7 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
       },
       () => {
         if (next)
-          next();
+          next(req, res);
         else {
           res.writeHead(404);
           res.end();

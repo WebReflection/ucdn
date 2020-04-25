@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 const {fork, isMaster} = require('cluster');
+const {readdir, exists} = require('fs');
 const {createServer} = require('http');
 const {cpus} = require('os');
-const {resolve} = require('path');
+const {join, resolve} = require('path');
 
 const cdn = require('./cjs/index.js');
 
@@ -70,19 +71,54 @@ else if (isMaster && 0 < cluster) {
   greetings();
 }
 else {
+  const base = resolve(process.cwd(), source);
+  const meta = '<meta name="viewport" content="width=device-width,initial-scale=1.0"></meta>';
+  const style = '<style>body{font-family:sans-serif;}a,a:visited{color:initial;}h1{font-size:initial;}</style>';
   const handler = cdn({
     cacheTimeout: 300000,
-    source: resolve(process.cwd(), source),
+    source: base,
     dest: dest ? resolve(process.cwd(), dest) : ''
   });
-  createServer((req, res) => {
-    handler(req, res, () => {
-      if (/\.\w+(?:\?.*)?$/.test(req.url))
-        res.writeHead(404);
-      else
-        res.writeHead(302, {'Location': 'index.html'});
+  const next = (req, res) => {
+    const {url} = req;
+    if (/\.\w+(?:\?.*)?$/.test(url)) {
+      res.writeHead(404);
       res.end();
-    });
-  })
+    }
+    else {
+      exists(join(base, url, 'index.html'), exists => {
+        if (exists) {
+          res.writeHead(302, {'Location': 'index.html'});
+          res.end();
+        }
+        else {
+          const dir = join(base, url);
+          readdir(dir, (err, files) => {
+            if (err)
+              res.writeHead(404);
+            else {
+              res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'});
+              res.write(`<!doctype html><html><head>${
+                meta
+              }<title>${
+                dir
+              }</title>${
+                style
+              }</head><body><h1>${
+                dir
+              }</h1><ul>`);
+              files.forEach(file => {
+                if (!/^\./.test(file))
+                  res.write(`<li><a href="${file}">${file}</a></li>`);
+              });
+              res.write(`</ul></body></html>`);
+            }
+            res.end();
+          });
+        }
+      });
+    }
+  };
+  createServer((req, res) => { handler(req, res, next); })
   .listen(port, isMaster ? greetings : Object);
 }
