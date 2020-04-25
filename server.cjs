@@ -5,7 +5,7 @@ const {createServer} = require('http');
 const {cpus} = require('os');
 const {resolve} = require('path');
 
-const cdn = require('./index.js');
+const cdn = require('./cjs/index.js');
 
 let port = 8080;
 let cluster = 0;
