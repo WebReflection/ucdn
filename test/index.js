@@ -216,7 +216,33 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
       })
     );
   }))
-
+  .then(name => {
+    requestHandler = cdn({
+      cacheTimeout: 0,
+      source: './test/source'
+    });
+    return name;
+  })
+  .then(name => new Promise(resolve => {
+    console.log(name);
+    const path = '/index.html';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = 'br';
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 75, 'correct length');
+        console.assert(headers['Content-Type'] === 'text/html; charset=UTF-8', 'correct mime');
+        console.assert(headers['ETag'] === '"4b-v8Z6E/fxKNAtMmrw"', 'correct ETag');
+        resolve(path);
+      })
+    );
+  }))
   .then(name => new Promise(resolve => {
     console.log(name);
     const path = '/benja-dark.svg';

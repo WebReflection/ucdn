@@ -3,9 +3,7 @@ import {tmpdir} from 'os';
 import {dirname, extname, join, resolve} from 'path';
 import ucompress from 'ucompress';
 
-import pack from './compress.js';
-import json from './json.js';
-import stat from './stat.js';
+import {json, pack, stat} from './cache.js';
 
 const {compressed} = ucompress;
 
@@ -17,15 +15,15 @@ const internalServerError = res => {
   res.end();
 };
 
-const readAndServe = (res, asset, cacheTimeout, IfNoneMatch) =>
+const readAndServe = (res, asset, cacheTimeout, ETag, same) =>
   json(asset, cacheTimeout).then(
-    headers => serveFile(res, asset, headers, IfNoneMatch),
+    headers => serveFile(res, asset, headers, ETag, same),
     /* istanbul ignore next */
     () => internalServerError(res)
   );
 
-const serveFile = (res, asset, headers, IfNoneMatch) => {
-  if (headers.ETag === IfNoneMatch) {
+const serveFile = (res, asset, headers, ETag, same) => {
+  if (same && headers.ETag === ETag) {
     res.writeHead(304, headers);
     res.end();
   }
@@ -58,8 +56,8 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
           let compression = '';
           const {
             ['accept-encoding']: AcceptEncoding,
-            ['if-none-match']: IfNoneMatch,
-            ['if-modified-since']: IfModifiedSince
+            ['if-none-match']: ETag,
+            ['if-modified-since']: Since
           } = req.headers;
           if (compressed.has(extname(path).toLowerCase())) {
             switch (true) {
@@ -79,6 +77,7 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
           }
           const create = () => {
             const {length} = compression;
+            /* istanbul ignore next */
             const compress = length ? asset.slice(0, -length) : asset;
             const waitForIt = compress + '.wait';
             mkdir(dirname(waitForIt), {recursive: true}, err => {
@@ -86,10 +85,10 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
               if (err)
                 internalServerError(res);
               else 
-                pack(original, compress, options, CT)
+                pack(asset, original, compress, options, CT)
                   .then(
                     () => {
-                      readAndServe(res, asset, CT, IfNoneMatch);
+                      readAndServe(res, asset, CT, ETag, false);
                     },
                     /* istanbul ignore next */
                     () => {
@@ -100,8 +99,9 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
           };
           json(asset, CT).then(
             headers => {
-              if (lastModified === IfModifiedSince)
-                serveFile(res, asset, headers, IfNoneMatch);
+              /* istanbul ignore else */
+              if (lastModified === headers['Last-Modified'])
+                serveFile(res, asset, headers, ETag, lastModified === Since);
               else
                 create();
             },
