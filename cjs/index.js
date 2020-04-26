@@ -1,10 +1,10 @@
 'use strict';
-const {createReadStream, mkdir, unlink} = require('fs');
+const {createReadStream, unlink} = require('fs');
 const {tmpdir} = require('os');
-const {dirname, extname, join, resolve} = require('path');
+const {extname, join, resolve} = require('path');
 const ucompress = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('ucompress'));
 
-const {json, pack, stat} = require('./cache.js');
+const {dir, json, pack, stat} = require('./cache.js');
 
 const {compressed} = ucompress;
 
@@ -81,26 +81,28 @@ module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
             }
             asset += compression;
           }
-          const create = err => {
+          const create = () => {
             const {length} = compression;
             /* istanbul ignore next */
             const compress = length ? asset.slice(0, -length) : asset;
             const waitForIt = compress + '.wait';
-            mkdir(dirname(waitForIt), {recursive: true}, err => {
-              /* istanbul ignore if */
-              if (err)
-                internalServerError(res);
-              else
+            const fail = () => {
+              /* istanbul ignore next */
+              internalServerError(res);
+            };
+            dir(waitForIt, CT).then(
+              () => {
                 pack(asset, original, compress, options, CT).then(
                   () => {
                     readAndServe(res, asset, CT, ETag, false);
                   },
                   /* istanbul ignore next */
-                  () => {
-                    unlink(waitForIt, () => internalServerError(res));
-                  }
+                  fail
                 );
-            });
+              },
+              /* istanbul ignore next */
+              fail
+            );
           };
           json(asset, CT).then(
             headers => {

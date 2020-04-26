@@ -1,9 +1,9 @@
-import {createReadStream, mkdir, unlink} from 'fs';
+import {createReadStream, unlink} from 'fs';
 import {tmpdir} from 'os';
-import {dirname, extname, join, resolve} from 'path';
+import {extname, join, resolve} from 'path';
 import ucompress from 'ucompress';
 
-import {json, pack, stat} from './cache.js';
+import {dir, json, pack, stat} from './cache.js';
 
 const {compressed} = ucompress;
 
@@ -80,26 +80,28 @@ export default ({source, dest, headers, cacheTimeout: CT}) => {
             }
             asset += compression;
           }
-          const create = err => {
+          const create = () => {
             const {length} = compression;
             /* istanbul ignore next */
             const compress = length ? asset.slice(0, -length) : asset;
             const waitForIt = compress + '.wait';
-            mkdir(dirname(waitForIt), {recursive: true}, err => {
-              /* istanbul ignore if */
-              if (err)
-                internalServerError(res);
-              else
+            const fail = () => {
+              /* istanbul ignore next */
+              internalServerError(res);
+            };
+            dir(waitForIt, CT).then(
+              () => {
                 pack(asset, original, compress, options, CT).then(
                   () => {
                     readAndServe(res, asset, CT, ETag, false);
                   },
                   /* istanbul ignore next */
-                  () => {
-                    unlink(waitForIt, () => internalServerError(res));
-                  }
+                  fail
                 );
-            });
+              },
+              /* istanbul ignore next */
+              fail
+            );
           };
           json(asset, CT).then(
             headers => {
