@@ -11,7 +11,6 @@ const _pack = new Map;
 const _stat = new Map;
 
 const $json = umap(_json);
-const $pack = umap(_pack);
 const $stat = umap(_stat);
 
 const clear = (map, asset) => {
@@ -28,41 +27,37 @@ const json = (asset, timeout = 1000) => (
     timeout && setTimeout(clear, timeout, _json, asset),
     (res, rej) => {
       readFile(asset + '.json', (err, data) => {
-        err ? rej() : res(parse(data));
+        err ? rej(err) : res(parse(data));
       });
     }
   ))
 ).promise;
 exports.json = json;
 
-const pack = (asset, source, target, options, timeout = 1000) => (
-  $pack.get(target) ||
-  $pack.set(target, new Promise((res, rej) => {
+const pack = (asset, source, target, options, timeout = 1000) => {
+  if (_pack.has(target))
+    return _pack.get(target);
+  /* istanbul ignore next */
+  if (_json.has(asset))
+    clearTimeout(_json.get(asset).timer);
+  const promise = ucompress(source, target, options).then(
+    () => {
+      if (timeout)
+        setTimeout(clear, timeout, _pack, target);
+      _json.delete(asset);
+      return json(asset, timeout);
+    },
     /* istanbul ignore next */
-    if (_json.has(asset))
-      clearTimeout(_json.get(asset).timer);
-    _json.set(asset, create(0, ($, _) => {
-      const next = () => {
-        _json.delete(asset);
-        json(asset, timeout).then($, _);
-      };
-      ucompress(source, target, options).then(
-        () => {
-          if (timeout)
-            setTimeout(clear, timeout, _pack, target);
-          res();
-          next();
-        },
-        /* istanbul ignore next */
-        () => {
-          _pack.delete(target);
-          rej();
-          next();
-        }
-      );
-    }));
-  }))
-);
+    err => {
+      _pack.delete(target);
+      _json.delete(asset);
+      return Promise.reject(err);
+    }
+  );
+  _pack.set(target, promise);
+  _json.set(asset, promise);
+  return promise;
+};
 exports.pack = pack;
 
 const stat = (asset, timeout = 1000) => (
@@ -73,7 +68,7 @@ const stat = (asset, timeout = 1000) => (
         if (err || !stats.isFile()) {
           clearTimeout(_stat.get(asset).timer);
           _stat.delete(asset);
-          rej();
+          rej(err);
         }
         else
           res({

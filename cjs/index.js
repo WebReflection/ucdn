@@ -18,9 +18,13 @@ const internalServerError = res => {
 
 const readAndServe = (res, asset, cacheTimeout, ETag, same) => {
   json(asset, cacheTimeout).then(
-    headers => serveFile(res, asset, headers, ETag, same),
+    headers => {
+      serveFile(res, asset, headers, ETag, same);
+    },
     /* istanbul ignore next */
-    () => internalServerError(res)
+    () => {
+      internalServerError(res);
+    }
   );
 };
 
@@ -77,7 +81,7 @@ module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
             }
             asset += compression;
           }
-          const create = () => {
+          const create = err => {
             const {length} = compression;
             /* istanbul ignore next */
             const compress = length ? asset.slice(0, -length) : asset;
@@ -87,16 +91,15 @@ module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
               if (err)
                 internalServerError(res);
               else
-                pack(asset, original, compress, options, CT)
-                  .then(
-                    () => {
-                      readAndServe(res, asset, CT, ETag, false);
-                    },
-                    /* istanbul ignore next */
-                    () => {
-                      unlink(waitForIt, () => internalServerError(res));
-                    }
-                  );
+                pack(asset, original, compress, options, CT).then(
+                  () => {
+                    readAndServe(res, asset, CT, ETag, false);
+                  },
+                  /* istanbul ignore next */
+                  () => {
+                    unlink(waitForIt, () => internalServerError(res));
+                  }
+                );
             });
           };
           json(asset, CT).then(
