@@ -71,6 +71,8 @@ const pack = (asset, source, target, options, timeout = 1000) => {
     },
     /* istanbul ignore next */
     err => {
+      console.error(`\x1b[1m\x1b[31mError\x1b[0m ${source}`);
+      console.error(err);
       _pack.delete(target);
       _json.delete(asset);
       return Promise.reject(err);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const {fork, isMaster} = require('cluster');
+const cluster = require('cluster');
 const {readdir, exists} = require('fs');
 const {createServer} = require('http');
 const {cpus} = require('os');
@@ -8,15 +8,17 @@ const {join, resolve} = require('path');
 
 const cdn = require('./cjs/index.js');
 
+const {fork, isMaster} = cluster;
+
 let port = 8080;
-let cluster = 0;
+let clusters = 0;
 let source = '.';
 let dest = '';
 let help = false;
 
 const greetings = () => {
   console.log('');
-  console.log(`  \x1b[1mucdn\x1b[0m \x1b[2m${cluster ? `(${cluster} forks)` : ''}\x1b[0m`);
+  console.log(`  \x1b[1mucdn\x1b[0m \x1b[2m${clusters ? `(${clusters} forks)` : ''}\x1b[0m`);
   console.log(`  \x1b[2mserving: ${resolve(process.cwd(), source)}\x1b[0m`);
   console.log(`  \x1b[2mcaching: ${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}\x1b[0m`);
   console.log(`  \x1b[1mhttp://localhost${port == 80 ? '' : `:${port}`}/\x1b[0m`);
@@ -31,7 +33,7 @@ for (let {argv} = process, i = 0; i < argv.length; i++) {
     }
     case /^--cluster(=\d+)?$/.test(argv[i]): {
       const {$1} = RegExp;
-      cluster = Math.min(
+      clusters = Math.min(
         parseInt($1 ? $1.slice(1) : argv[++i], 10),
         cpus().length
       );
@@ -64,10 +66,14 @@ if (help) {
   console.log(`  --dest /tmp \x1b[2m# CDN cache path, default /tmp/ucdn\x1b[0m`);
   console.log('');
 }
-else if (isMaster && 0 < cluster) {
-  let forks = cluster;
+else if (isMaster && 0 < clusters) {
+  let forks = clusters;
   while (forks--)
     fork();
+  cluster.on('exit', (worker, code, signal) => {
+    console.warn(`Worker ${worker.process.pid} died with code ${code} and signal ${signal}`);
+    fork();
+  });
   greetings();
 }
 else {
