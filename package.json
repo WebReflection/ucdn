@@ -30,6 +30,7 @@
     "default": "./cjs/index.js"
   },
   "dependencies": {
+    "id-promise": "^0.1.0",
     "ucompress": "^0.8.3"
   },
   "repository": {

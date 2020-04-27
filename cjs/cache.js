@@ -2,6 +2,7 @@
 const {mkdir, readFile, stat: fStat} = require('fs');
 const {dirname} = require('path');
 
+const idPromise = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('id-promise'));
 const ucompress = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('ucompress'));
 const umap = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('umap'));
 
@@ -62,22 +63,24 @@ const pack = (asset, source, target, options, timeout = 1000) => {
   /* istanbul ignore next */
   if (_json.has(asset))
     clearTimeout(_json.get(asset).timer);
-  const promise = ucompress(source, target, options).then(
-    () => {
-      if (timeout)
-        setTimeout(clear, timeout, _pack, target);
-      _json.delete(asset);
-      return json(asset, timeout);
-    },
-    /* istanbul ignore next */
-    err => {
-      console.error(`\x1b[1m\x1b[31mError\x1b[0m ${source}`);
-      console.error(err);
-      _pack.delete(target);
-      _json.delete(asset);
-      return Promise.reject(err);
-    }
-  );
+  const promise = idPromise(`ucdn:pack:${target}`, (res, rej) => {
+    ucompress(source, target, options).then(
+      () => {
+        if (timeout)
+          setTimeout(clear, timeout, _pack, target);
+        _json.delete(asset);
+        res(json(asset, timeout));
+      },
+      /* istanbul ignore next */
+      err => {
+        console.error(`\x1b[1m\x1b[31mError\x1b[0m ${source}`);
+        console.error(err);
+        _pack.delete(target);
+        _json.delete(asset);
+        rej(err);
+      }
+    );
+  });
   _pack.set(target, promise);
   _json.set(asset, promise);
   return promise;
