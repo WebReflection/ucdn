@@ -41,10 +41,17 @@ const streamFile = (res, asset, headers) => {
   createReadStream(asset).pipe(res);
 };
 
-export default ({source, dest, headers, cacheTimeout: CT}) => {
+export default ({
+  source,
+  dest,
+  headers,
+  maxWidth,
+  maxHeight,
+  cacheTimeout: CT
+}) => {
   const SOURCE = getPath(source);
   const DEST = dest ? getPath(dest) : join(tmpdir(), 'ucdn');
-  const options = {createFiles: true, headers};
+  const options = {createFiles: true, maxWidth, maxHeight, headers};
   return (req, res, next) => {
     const path = req.url.replace(/\?.*$/, '');
     const original = SOURCE + path;

@@ -148,6 +148,7 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
   }))
   .then(name => {
     requestHandler = cdn({
+      maxWidth: 320,
       cacheTimeout: 100,
       source: './test/source'
     });
@@ -209,15 +210,16 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 37453, 'correct length');
+        console.assert(headers['Content-Length'] === 4756, 'correct length');
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
-        console.assert(headers['ETag'] === '"924d-mZQTlzKwWxkl3X0y"', 'correct ETag');
+        console.assert(headers['ETag'] === '"1294-jdhULqQ3U4vpfDY2"', 'correct ETag');
         resolve(path);
       })
     );
   }))
   .then(name => {
     requestHandler = cdn({
+      maxHeight: 320,
       cacheTimeout: 0,
       source: './test/source'
     });
