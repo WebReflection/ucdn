@@ -92,8 +92,8 @@ export default ({
             /* istanbul ignore next */
             const compress = length ? asset.slice(0, -length) : asset;
             const waitForIt = compress + '.wait';
+            /* istanbul ignore next */
             const fail = () => {
-              /* istanbul ignore next */
               internalServerError(res);
             };
             dir(waitForIt, CT).then(
