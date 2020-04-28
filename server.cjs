@@ -15,6 +15,7 @@ let clusters = 0;
 let source = '.';
 let dest = '';
 let help = false;
+let maxWidth, maxHeight;
 
 const greetings = () => {
   console.log('');
@@ -54,16 +55,28 @@ for (let {argv} = process, i = 0; i < argv.length; i++) {
       dest = $1 ? $1.slice(1) : argv[++i];
       break;
     }
+    case /^--max-width(=\d+)?$/.test(argv[i]): {
+      const {$1} = RegExp;
+      maxWidth = parseInt($1 ? $1.slice(1) : argv[++i], 10);
+      break;
+    }
+    case /^--max-height(=\d+)?$/.test(argv[i]): {
+      const {$1} = RegExp;
+      maxHeight = parseInt($1 ? $1.slice(1) : argv[++i], 10);
+      break;
+    }
   }
 }
 
 if (help) {
   console.log('');
   console.log(`\x1b[1mucdn --cluster 0 --port 8080 --source ./path/\x1b[0m`);
-  console.log(`  --cluster X \x1b[2m# number of forks, default 0\x1b[0m`);
-  console.log(`  --port XXXX \x1b[2m# port to use, default 8080\x1b[0m`);
-  console.log(`  --source ./ \x1b[2m# path to serve as CDN, default current folder\x1b[0m`);
-  console.log(`  --dest /tmp \x1b[2m# CDN cache path, default /tmp/ucdn\x1b[0m`);
+  console.log(`  --cluster X    \x1b[2m# number of forks, default 0\x1b[0m`);
+  console.log(`  --port XXXX    \x1b[2m# port to use, default 8080\x1b[0m`);
+  console.log(`  --source ./    \x1b[2m# path to serve as CDN, default current folder\x1b[0m`);
+  console.log(`  --dest /tmp    \x1b[2m# CDN cache path, default /tmp/ucdn\x1b[0m`);
+  console.log(`  --max-width X  \x1b[2m# max images width\x1b[0m`);
+  console.log(`  --max-height X \x1b[2m# max images height\x1b[0m`);
   console.log('');
 }
 else if (isMaster && 0 < clusters) {
@@ -83,7 +96,9 @@ else {
   const handler = cdn({
     cacheTimeout: 300000,
     source: base,
-    dest: dest ? resolve(process.cwd(), dest) : ''
+    dest: dest ? resolve(process.cwd(), dest) : '',
+    maxWidth,
+    maxHeight
   });
   const next = (req, res) => {
     const {url} = req;

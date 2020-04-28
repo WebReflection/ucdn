@@ -20,7 +20,7 @@
   "license": "ISC",
   "devDependencies": {
     "ascjs": "^4.0.0",
-    "coveralls": "^3.0.14",
+    "coveralls": "^3.1.0",
     "nyc": "^15.0.1"
   },
   "module": "./esm/index.js",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "id-promise": "^0.1.0",
-    "ucompress": "^0.8.3"
+    "ucompress": "^0.9.0"
   },
   "repository": {
     "type": "git",

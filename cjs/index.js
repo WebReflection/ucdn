@@ -42,10 +42,17 @@ const streamFile = (res, asset, headers) => {
   createReadStream(asset).pipe(res);
 };
 
-module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
+module.exports = ({
+  source,
+  dest,
+  headers,
+  maxWidth,
+  maxHeight,
+  cacheTimeout: CT
+}) => {
   const SOURCE = getPath(source);
   const DEST = dest ? getPath(dest) : join(tmpdir(), 'ucdn');
-  const options = {createFiles: true, headers};
+  const options = {createFiles: true, maxWidth, maxHeight, headers};
   return (req, res, next) => {
     const path = req.url.replace(/\?.*$/, '');
     const original = SOURCE + path;
@@ -86,8 +93,8 @@ module.exports = ({source, dest, headers, cacheTimeout: CT}) => {
             /* istanbul ignore next */
             const compress = length ? asset.slice(0, -length) : asset;
             const waitForIt = compress + '.wait';
+            /* istanbul ignore next */
             const fail = () => {
-              /* istanbul ignore next */
               internalServerError(res);
             };
             dir(waitForIt, CT).then(
