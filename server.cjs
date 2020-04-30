@@ -83,8 +83,8 @@ else if (isMaster && 0 < clusters) {
   let forks = clusters;
   while (forks--)
     fork();
-  cluster.on('exit', (worker, code, signal) => {
-    console.warn(`Worker ${worker.process.pid} died with code ${code} and signal ${signal}`);
+  cluster.on('exit', ({process}, code, signal) => {
+    console.warn(`Worker ${process.pid} died with code ${code} and signal ${signal}`);
     fork();
   });
   greetings();
