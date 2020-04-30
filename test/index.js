@@ -150,7 +150,8 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
     requestHandler = cdn({
       maxWidth: 320,
       cacheTimeout: 100,
-      source: './test/source'
+      source: './test/source',
+      preview: true
     });
     return name;
   })
@@ -193,6 +194,26 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         console.assert(headers['Content-Length'] === 3356, 'correct length');
         console.assert(headers['Content-Type'] === 'text/plain; charset=UTF-8', 'correct mime');
         console.assert(headers['ETag'] === '"d1c-BnkCkKBJ6IhARixM"', 'correct ETag');
+        resolve(path);
+      })
+    );
+  }))
+  .then(name => new Promise(resolve => {
+    console.log(name);
+    const path = '/archibold.preview.jpg';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = '';
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 684, 'correct length');
+        console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
+        console.assert(headers['ETag'] === '"2ac-Kjd8hZLZYg0i+eGt"', 'correct ETag');
         resolve(path);
       })
     );

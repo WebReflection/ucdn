@@ -3,7 +3,7 @@
 const cluster = require('cluster');
 const {readdir, exists} = require('fs');
 const {createServer} = require('http');
-const {cpus} = require('os');
+const {cpus, networkInterfaces} = require('os');
 const {join, resolve} = require('path');
 
 const cdn = require('./cjs/index.js');
@@ -15,14 +15,23 @@ let clusters = 0;
 let source = '.';
 let dest = '';
 let help = false;
+let preview = false;
 let maxWidth, maxHeight;
 
 const greetings = () => {
   console.log('');
   console.log(`  \x1b[1mucdn\x1b[0m \x1b[2m${clusters ? `(${clusters} forks)` : ''}\x1b[0m`);
-  console.log(`  \x1b[2mserving: ${resolve(process.cwd(), source)}\x1b[0m`);
-  console.log(`  \x1b[2mcaching: ${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}\x1b[0m`);
-  console.log(`  \x1b[1mhttp://localhost${port == 80 ? '' : `:${port}`}/\x1b[0m`);
+  console.log(`  \x1b[2msource:\x1b[0m ${resolve(process.cwd(), source)}`);
+  console.log(`  \x1b[2mcache:  ${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}\x1b[0m`);
+  console.log(`  \x1b[2mvisit: \x1b[0m \x1b[1mhttp://localhost${port == 80 ? '' : `:${port}`}/\x1b[0m`);
+  const interfaces = networkInterfaces();
+  Object.keys(interfaces).forEach(key => {
+    interfaces[key].forEach(iFace => {
+      const {address, family} = iFace;
+      if (family === 'IPv4' && address !== '127.0.0.1')
+        console.log(`          http://${address}${port == 80 ? '' : `:${port}`}/`);
+    });
+  });
   console.log('');
 };
 
@@ -65,18 +74,23 @@ for (let {argv} = process, i = 0; i < argv.length; i++) {
       maxHeight = parseInt($1 ? $1.slice(1) : argv[++i], 10);
       break;
     }
+    case /^--with-preview$/.test(argv[i]): {
+      preview = true;
+      break;
+    }
   }
 }
 
 if (help) {
   console.log('');
-  console.log(`\x1b[1mucdn --cluster 0 --port 8080 --source ./path/\x1b[0m`);
+  console.log(`\x1b[1mucdn --source ./path/\x1b[0m`);
   console.log(`  --cluster X    \x1b[2m# number of forks, default 0\x1b[0m`);
   console.log(`  --port XXXX    \x1b[2m# port to use, default 8080\x1b[0m`);
   console.log(`  --source ./    \x1b[2m# path to serve as CDN, default current folder\x1b[0m`);
   console.log(`  --dest /tmp    \x1b[2m# CDN cache path, default /tmp/ucdn\x1b[0m`);
   console.log(`  --max-width X  \x1b[2m# max images width\x1b[0m`);
   console.log(`  --max-height X \x1b[2m# max images height\x1b[0m`);
+  console.log(`  --with-preview \x1b[2m# enables *.preview.jpeg images\x1b[0m`);
   console.log('');
 }
 else if (isMaster && 0 < clusters) {
@@ -98,7 +112,8 @@ else {
     source: base,
     dest: dest ? resolve(process.cwd(), dest) : '',
     maxWidth,
-    maxHeight
+    maxHeight,
+    preview
   });
   const next = (req, res) => {
     const {url} = req;

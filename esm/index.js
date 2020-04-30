@@ -47,14 +47,16 @@ export default ({
   headers,
   maxWidth,
   maxHeight,
+  preview,
   cacheTimeout: CT
 }) => {
   const SOURCE = getPath(source);
   const DEST = dest ? getPath(dest) : join(tmpdir(), 'ucdn');
-  const options = {createFiles: true, maxWidth, maxHeight, headers};
+  const options = {createFiles: true, maxWidth, maxHeight, headers, preview};
   return (req, res, next) => {
-    const path = req.url.replace(/\?.*$/, '');
-    const original = SOURCE + path;
+    const path = decodeURIComponent(req.url.replace(/\?.*$/, ''));
+    const real = preview ? path.replace(/\.preview(\.jpe?g)$/i, '$1') : path;
+    const original = SOURCE + real;
     stat(original, CT).then(
       ({lastModified, size}) => {
         if (path === '/favicon.ico')
@@ -88,9 +90,8 @@ export default ({
             asset += compression;
           }
           const create = () => {
-            const {length} = compression;
             /* istanbul ignore next */
-            const compress = length ? asset.slice(0, -length) : asset;
+            const compress = DEST + real;
             const waitForIt = compress + '.wait';
             /* istanbul ignore next */
             const fail = () => {
