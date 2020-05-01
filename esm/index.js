@@ -10,12 +10,10 @@ const {compressed} = ucompress;
 const compression = (path, AcceptEncoding) => {
   if (compressed.has(extname(path).toLowerCase())) {
     switch (true) {
-      /* istanbul ignore next */
       case /\bbr\b/.test(AcceptEncoding):
         return path + '.br';
       case /\bgzip\b/.test(AcceptEncoding):
         return path + '.gzip';
-      /* istanbul ignore next */
       case /\bdeflate\b/.test(AcceptEncoding):
         return path + '.deflate';
     }
@@ -57,15 +55,13 @@ const internalServerError = res => {
   res.end();
 };
 
-const readAndServe = (res, asset, cacheTimeout, ETag, same) => {
+const readAndServe = (res, asset, cacheTimeout, ETag, fail, same) => {
   json(asset, cacheTimeout).then(
     headers => {
       serveFile(res, asset, headers, ETag, same);
     },
     /* istanbul ignore next */
-    () => {
-      internalServerError(res);
-    }
+    fail
   );
 };
 
@@ -121,15 +117,12 @@ export default ({
           const create = () => {
             const target = DEST + real;
             const waitForIt = target + '.wait';
-            /* istanbul ignore next */
-            const fail = () => {
-              internalServerError(res);
-            };
+            const fail = internalServerError.bind(null, res);
             dir(waitForIt, CT).then(
               () => {
                 pack(asset, original, target, options, CT).then(
                   () => {
-                    readAndServe(res, asset, CT, ETag, false);
+                    readAndServe(res, asset, CT, ETag, fail, false);
                   },
                   /* istanbul ignore next */
                   fail

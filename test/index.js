@@ -305,5 +305,28 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
       })
     );
   }))
+  .then(name => new Promise(resolve => {
+    console.log(name);
+    requestHandler = cdn({serve: './test/dest'});
+    const path = '/text.txt';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = 'deflate';
+    request.headers.ifNoneMatch = '"547-MRRsLNkHQ2IWwyfp"';
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 304, 'correct code');
+        console.assert(headers['Content-Length'] === 1351, 'correct length');
+        console.assert(headers['Content-Type'] === 'text/plain; charset=UTF-8', 'correct mime');
+        console.assert(headers['ETag'] === '"547-MRRsLNkHQ2IWwyfp"', 'correct ETag');
+        console.assert(headers['X-Powered-By'] === 'µcdn', 'correct headers');
+        resolve(path);
+      })
+    );
+  }))
   .then(console.log)
 ;

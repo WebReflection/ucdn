@@ -49,6 +49,12 @@ app.listen(8080);
 
 
 
+### As binary file
+
+It is possible to bootstrap a micro CDN right away via `npx ucdn`. Pass `--help` to see options.
+
+
+
 ### Performance
 
 Differently from other solutions, the compression is done once, and once only, per each required static asset, reducing both _RAM_ and _CPU_ overhead in the long run, but being a bit slower than express static, with or without compressed outcome, in the very first time a file, that hasn't been optimized yet, is requested.
@@ -67,12 +73,6 @@ In order to do so, _µcdn_ uses an internal cache mechanism that avoid checking 
 If you pass a timeout with value `0`, it will never check ever again anything, and all _JSON_ headers and stats results will be kept in _RAM_ until the end of the program, unless some file is missing, or some error occurs.
 
 In every other case, using a minute, up to 10 minutes, as cache timeout, is rather suggested.
-
-
-
-### As binary file
-
-It is possible to bootstrap a micro CDN right away via `npx ucdn`. Pass `--help` to see options.
 
 
 
