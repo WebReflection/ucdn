@@ -45,7 +45,7 @@ const pack = (asset, source, target, options, timeout = 1000) => {
         if (timeout)
           setTimeout(clear, timeout, _pack, target);
         _json.delete(asset);
-        res(json(asset, timeout));
+        json(asset, timeout).then(res, rej);
       },
       /* istanbul ignore next */
       err => {
