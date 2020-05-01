@@ -1,29 +1,17 @@
-import {mkdir, readFile, stat as fStat} from 'fs';
+import {mkdir, stat as fStat} from 'fs';
 import {dirname} from 'path';
 
 import idPromise from 'id-promise';
 import ucompress from 'ucompress';
 import umap from 'umap';
-
-const {parse} = JSON;
+import {clear, create, json, jsonMap as _json} from 'ucdn-utils';
 
 const _dir = new Map;
-const _json = new Map;
 const _pack = new Map;
 const _stat = new Map;
 
 const $dir = umap(_dir);
-const $json = umap(_json);
 const $stat = umap(_stat);
-
-const clear = (map, asset) => {
-  map.delete(asset);
-};
-
-const create = (timer, callback) => ({
-  timer,
-  promise: new Promise(callback)
-});
 
 export const dir = (asset, timeout = 1000) => (
   $dir.get(asset) || $dir.set(asset, create(
@@ -38,17 +26,6 @@ export const dir = (asset, timeout = 1000) => (
         }
         else
           res();
-      });
-    }
-  ))
-).promise;
-
-export const json = (asset, timeout = 1000) => (
-  $json.get(asset) || $json.set(asset, create(
-    timeout && setTimeout(clear, timeout, _json, asset),
-    (res, rej) => {
-      readFile(asset + '.json', (err, data) => {
-        err ? rej(err) : res(parse(data));
       });
     }
   ))

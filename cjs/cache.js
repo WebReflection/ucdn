@@ -1,30 +1,18 @@
 'use strict';
-const {mkdir, readFile, stat: fStat} = require('fs');
+const {mkdir, stat: fStat} = require('fs');
 const {dirname} = require('path');
 
 const idPromise = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('id-promise'));
 const ucompress = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('ucompress'));
 const umap = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('umap'));
-
-const {parse} = JSON;
+const {clear, create, json, jsonMap: _json} = require('ucdn-utils');
 
 const _dir = new Map;
-const _json = new Map;
 const _pack = new Map;
 const _stat = new Map;
 
 const $dir = umap(_dir);
-const $json = umap(_json);
 const $stat = umap(_stat);
-
-const clear = (map, asset) => {
-  map.delete(asset);
-};
-
-const create = (timer, callback) => ({
-  timer,
-  promise: new Promise(callback)
-});
 
 const dir = (asset, timeout = 1000) => (
   $dir.get(asset) || $dir.set(asset, create(
@@ -44,18 +32,6 @@ const dir = (asset, timeout = 1000) => (
   ))
 ).promise;
 exports.dir = dir;
-
-const json = (asset, timeout = 1000) => (
-  $json.get(asset) || $json.set(asset, create(
-    timeout && setTimeout(clear, timeout, _json, asset),
-    (res, rej) => {
-      readFile(asset + '.json', (err, data) => {
-        err ? rej(err) : res(parse(data));
-      });
-    }
-  ))
-).promise;
-exports.json = json;
 
 const pack = (asset, source, target, options, timeout = 1000) => {
   if (_pack.has(target))
