@@ -8,7 +8,49 @@ const {dir, json, pack, stat} = require('./cache.js');
 
 const {compressed} = ucompress;
 
+const compression = (path, AcceptEncoding) => {
+  if (compressed.has(extname(path).toLowerCase())) {
+    switch (true) {
+      /* istanbul ignore next */
+      case /\bbr\b/.test(AcceptEncoding):
+        return path + '.br';
+      case /\bgzip\b/.test(AcceptEncoding):
+        return path + '.gzip';
+      /* istanbul ignore next */
+      case /\bdeflate\b/.test(AcceptEncoding):
+        return path + '.deflate';
+    }
+  }
+  return path;
+};
+
+const getHeaders = ({headers}) => {
+  const {
+    ['accept-encoding']: AcceptEncoding,
+    ['if-none-match']: ETag,
+    ['if-modified-since']: Since
+  } = headers;
+  return {AcceptEncoding, ETag, Since};
+};
 const getPath = source => (source[0] === '/' ? source : resolve(source));
+const getURL = ({url}) => decodeURIComponent(url.replace(/\?.*$/, ''));
+
+const fallback = (req, res, next) => () => {
+  if (next)
+    next(req, res);
+  else {
+    res.writeHead(404);
+    res.end();
+  }
+};
+
+const favicon = (res, original, size, headers) => {
+  streamFile(res, original, {
+    'Content-Length': size,
+    'Content-Type': 'image/vnd.microsoft.icon',
+    ...headers
+  });
+};
 
 /* istanbul ignore next */
 const internalServerError = res => {
@@ -49,58 +91,44 @@ module.exports = ({
   maxWidth,
   maxHeight,
   preview,
+  serve,
   cacheTimeout: CT
 }) => {
-  const SOURCE = getPath(source);
+  const SOURCE = getPath(serve || source);
+  if (serve)
+    return (req, res, next) => {
+      const {AcceptEncoding, ETag} = getHeaders(req);
+      const asset = SOURCE + compression(getURL(req), AcceptEncoding);
+      json(asset, CT).then(
+        headers => {
+          serveFile(res, asset, headers, ETag, true);
+        },
+        fallback(req, res, next)
+      );
+    };
   const DEST = dest ? getPath(dest) : join(tmpdir(), 'ucdn');
   const options = {createFiles: true, maxWidth, maxHeight, headers, preview};
   return (req, res, next) => {
-    const path = decodeURIComponent(req.url.replace(/\?.*$/, ''));
+    const path = getURL(req);
     const real = preview ? path.replace(/\.preview(\.jpe?g)$/i, '$1') : path;
     const original = SOURCE + real;
     stat(original, CT).then(
       ({lastModified, size}) => {
         if (path === '/favicon.ico')
-          streamFile(res, original, {
-            'Content-Length': size,
-            'Content-Type': 'image/vnd.microsoft.icon',
-            ...headers
-          });
+          favicon(res, original, size, headers);
         else {
-          let asset = DEST + path;
-          let compression = '';
-          const {
-            ['accept-encoding']: AcceptEncoding,
-            ['if-none-match']: ETag,
-            ['if-modified-since']: Since
-          } = req.headers;
-          if (compressed.has(extname(path).toLowerCase())) {
-            switch (true) {
-              /* istanbul ignore next */
-              case /\bbr\b/.test(AcceptEncoding):
-                compression = '.br';
-                break;
-              case /\bgzip\b/.test(AcceptEncoding):
-                compression = '.gzip';
-                break;
-              /* istanbul ignore next */
-              case /\bdeflate\b/.test(AcceptEncoding):
-                compression = '.deflate';
-                break;
-            }
-            asset += compression;
-          }
+          const {AcceptEncoding, ETag, Since} = getHeaders(req);
+          const asset = DEST + compression(path, AcceptEncoding);
           const create = () => {
-            /* istanbul ignore next */
-            const compress = DEST + real;
-            const waitForIt = compress + '.wait';
+            const target = DEST + real;
+            const waitForIt = target + '.wait';
             /* istanbul ignore next */
             const fail = () => {
               internalServerError(res);
             };
             dir(waitForIt, CT).then(
               () => {
-                pack(asset, original, compress, options, CT).then(
+                pack(asset, original, target, options, CT).then(
                   () => {
                     readAndServe(res, asset, CT, ETag, false);
                   },
@@ -124,14 +152,7 @@ module.exports = ({
           );
         }
       },
-      () => {
-        if (next)
-          next(req, res);
-        else {
-          res.writeHead(404);
-          res.end();
-        }
-      }
+      fallback(req, res, next)
     );
   };
 };
