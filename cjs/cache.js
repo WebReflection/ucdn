@@ -5,7 +5,7 @@ const {dirname} = require('path');
 const idPromise = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('id-promise'));
 const ucompress = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('ucompress'));
 const umap = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('umap'));
-const {clear, create, json, jsonMap: _json} = require('ucdn-utils');
+const {clear, create, json, _json} = require('ucdn-utils');
 
 const _dir = new Map;
 const _pack = new Map;

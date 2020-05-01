@@ -4,7 +4,7 @@ import {dirname} from 'path';
 import idPromise from 'id-promise';
 import ucompress from 'ucompress';
 import umap from 'umap';
-import {clear, create, json, jsonMap as _json} from 'ucdn-utils';
+import {clear, create, json, _json} from 'ucdn-utils';
 
 const _dir = new Map;
 const _pack = new Map;
