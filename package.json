@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "id-promise": "^0.1.0",
-    "ucdn-utils": "^0.1.2",
-    "ucompress": "^0.11.1"
+    "ucdn-utils": "^0.1.3",
+    "ucompress": "^0.11.2"
   },
   "repository": {
     "type": "git",
