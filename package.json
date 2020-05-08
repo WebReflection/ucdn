@@ -1,6 +1,6 @@
 {
   "name": "ucdn",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "A µcompress based CDN utility, compatible with both Express and native http module",
   "bin": "./server.cjs",
   "main": "./cjs/index.js",
