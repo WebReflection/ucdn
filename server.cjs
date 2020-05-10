@@ -20,6 +20,7 @@ let help = false;
 let preview = false;
 let isServing = false;
 let notServing = false;
+let noMinify = false;
 let maxWidth, maxHeight;
 
 for (let
@@ -66,6 +67,9 @@ for (let
       break;
 
     // no value needed
+    case /^--no-minify$/.test(argv[i]):
+      noMinify = true;
+      break;
     case /^--with-preview$/.test(argv[i]):
       preview = true;
       break;
@@ -89,6 +93,7 @@ if (help || (notServing && isServing)) {
   console.log(`  --serve /path      \x1b[2m# serve a CDN ready path without any runtime\x1b[0m`);
   console.log(`  --source ./        \x1b[2m# path to serve as CDN, default current folder\x1b[0m`);
   console.log(`  --with-preview     \x1b[2m# enables *.preview.jpeg images\x1b[0m`);
+  console.log(`  --no-minify        \x1b[2m# do not minify sources\x1b[0m`);
   console.log('');
   console.log(`\x1b[1maliases\x1b[0m`);
   console.log(`  --fork X           \x1b[2m# alias for --cluster\x1b[0m`);
@@ -121,7 +126,8 @@ else {
     cacheTimeout,
     maxWidth,
     maxHeight,
-    preview
+    preview,
+    noMinify
   });
   const fail = res => {
     res.writeHead(404);
