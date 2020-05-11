@@ -32,6 +32,7 @@ module.exports = ({
   maxHeight,
   preview,
   noMinify,
+  sourceMap,
   serve,
   cacheTimeout
 }) => {
@@ -39,11 +40,18 @@ module.exports = ({
     return justServe(serve, cacheTimeout);
   const SOURCE = getPath(source);
   const DEST = dest ? getPath(dest) : join(tmpdir(), 'ucdn');
-  const options = {createFiles: true,
-                    maxWidth, maxHeight, headers, preview, noMinify};
+  const options = {
+    createFiles: true,
+    maxWidth, maxHeight,
+    headers, preview, noMinify, sourceMap
+  };
   return (req, res, next) => {
     const path = getURL(req);
-    const real = preview ? path.replace(/\.preview(\.jpe?g)$/i, '$1') : path;
+    let real = path;
+    if (preview)
+      real = real.replace(/\.preview(\.jpe?g)$/i, '$1');
+    if (sourceMap)
+      real = real.replace(/(\.m?js)\.map$/, '$1');
     const original = SOURCE + real;
     stat(original, cacheTimeout).then(
       ({lastModified, size}) => {

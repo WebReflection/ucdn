@@ -151,7 +151,8 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
       maxWidth: 320,
       cacheTimeout: 100,
       source: './test/source',
-      preview: true
+      preview: true,
+      sourceMap: true
     });
     return name;
   })
@@ -231,9 +232,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 4756, 'correct length');
+        console.assert(headers['Content-Length'] === 4849, 'correct length');
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
-        console.assert(headers['ETag'] === '"1294-jdhULqQ3U4vpfDY2"', 'correct ETag');
+        console.assert(headers['ETag'] === '"12f1-LnIwfVeSrbm+5DDk"', 'correct ETag');
         resolve(path);
       })
     );

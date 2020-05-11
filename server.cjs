@@ -21,6 +21,7 @@ let preview = false;
 let isServing = false;
 let notServing = false;
 let noMinify = false;
+let sourceMap = false;
 let maxWidth, maxHeight;
 
 for (let
@@ -73,6 +74,9 @@ for (let
     case /^--with-preview$/.test(argv[i]):
       preview = true;
       break;
+    case /^--with-source-map$/.test(argv[i]):
+      sourceMap = true;
+      break;
     case /^--help$/.test(argv[i]):
     default:
       help = true;
@@ -93,6 +97,7 @@ if (help || (notServing && isServing)) {
   console.log(`  --serve /path      \x1b[2m# serve a CDN ready path without any runtime\x1b[0m`);
   console.log(`  --source ./        \x1b[2m# path to serve as CDN, default current folder\x1b[0m`);
   console.log(`  --with-preview     \x1b[2m# enables *.preview.jpeg images\x1b[0m`);
+  console.log(`  --with-source-map  \x1b[2m# enables source maps\x1b[0m`);
   console.log(`  --no-minify        \x1b[2m# do not minify sources\x1b[0m`);
   console.log('');
   console.log(`\x1b[1maliases\x1b[0m`);
@@ -127,6 +132,7 @@ else {
     maxWidth,
     maxHeight,
     preview,
+    sourceMap,
     noMinify
   });
   const fail = res => {
