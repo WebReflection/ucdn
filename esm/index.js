@@ -52,7 +52,7 @@ export default ({
     if (preview)
       real = real.replace(/\.preview(\.jpe?g)$/i, '$1');
     if (sourceMap)
-      real = real.replace(/(\.m?js)\.map$/, '$1');
+      real = real.replace(/(\.m?js)\.(?:source\1|map)$/, '$1');
     const original = SOURCE + real;
     stat(original, cacheTimeout).then(
       ({lastModified, size}) => {
