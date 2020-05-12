@@ -87,9 +87,10 @@ for (let
   }
 }
 
+const header = `# micro cdn v${require(join(__dirname, 'package.json')).version}`;
 if (help || (notServing && isServing)) {
   log(`
-  # micro cdn v${require(join(__dirname, 'package.json')).version}
+  ${header}
   -https://github.com/WebReflection/ucdn-
 
   *ucdn --source ./path/*
@@ -214,7 +215,7 @@ else {
 function greetings(newPort = this.address().port) {
   if (isMaster) {
     const checks = `(checked each ${(cacheTimeout / 60000) >>> 0} min)`;
-    log(`\n  *ucdn* ${clusters ? `-(${clusters} forks)-` : ''}`);
+    log(`\n${header}`);
     if (newPort != port)
       warn(`  port *${port}* not available, using *${newPort}* instead`);
     if (isServing) {
@@ -224,6 +225,21 @@ function greetings(newPort = this.address().port) {
       log(`  -source:-  ${resolve(process.cwd(), source)} -${checks}-`);
       log(`  -cache:-   -${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}-`);
     }
+    let config = [];
+    if (clusters)
+      config.push(`${clusters} -forks-`);
+    if (preview)
+      config.push('-preview-');
+    if (sourceMap)
+      config.push('-source map-');
+    if (noMinify)
+      config.push('-no minification-');
+    if (maxWidth)
+      config.push(`-w${maxWidth}px-`);
+    if (maxHeight)
+      config.push(`-h${maxHeight}px-`);
+    if (config.length)
+      log(`  -config:-  ${config.join('-,- ')}`);
     log(`  -visit:-   *http://localhost${newPort == 80 ? '' : `:${newPort}`}/*`);
     const interfaces = networkInterfaces();
     Object.keys(interfaces).forEach(key => {
