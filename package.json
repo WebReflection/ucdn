@@ -30,6 +30,7 @@
     "default": "./cjs/index.js"
   },
   "dependencies": {
+    "essential-md": "^0.3.0",
     "id-promise": "^0.1.0",
     "ucdn-utils": "^0.3.2",
     "ucompress": "^0.15.2"
