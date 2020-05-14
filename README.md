@@ -57,6 +57,27 @@ app.listen(8080);
 
 It is possible to bootstrap a micro CDN right away via `npx ucdn`. Pass `--help` to see options.
 
+#### The `--verbose` output
+
+If started via `--verbose` flag, each request will be logged producing the following output example:
+
+> **200** <sub>XXms</sub> /full/path.html<sub>.gzip</sup>
+>
+> **404** /full/nope.html
+>
+> **200** /favicon.ico
+>
+> **404** /full/nope.html
+>
+> **304** /full/path.html<sub>.gzip</sup>
+>
+> **500** /full/error-during-compression
+
+Please note that **200** is the file status in the *cdn*, not the response status for the browser. The status indeed indicates that the file wasn't known/compressed yet, and it took *Xms* to be generated.
+
+On the other hand, whenever a file was already known, it will be served like a **304** as the *cdn* didn't need to perform any operation.
+
+Basically, the status reflects the *cdn* and *not* whenever a browser is requesting new content or not.
 
 
 ### Performance

@@ -24,6 +24,7 @@ let isServing = false;
 let notServing = false;
 let noMinify = false;
 let sourceMap = false;
+let verbose = false;
 let maxWidth, maxHeight;
 
 for (let
@@ -79,6 +80,9 @@ for (let
     case /^--with-source-map$/.test(argv[i]):
       sourceMap = true;
       break;
+    case /^--verbose$/.test(argv[i]):
+      verbose = true;
+      break;
     case /^--help$/.test(argv[i]):
     default:
       help = true;
@@ -100,6 +104,7 @@ if (help || (notServing && isServing)) {
     \`--cache-timeout X\`  -# cache expiration in ms, default 300000-
     \`--port XXXX\`        -# port to use, default 0 (any available port)-
     \`--serve /path\`      -# serve a CDN ready path without any runtime-
+    \`--verbose\`          -# logs operations-
 
   *ucompress* options
     \`--max-width X\`      -# max images width in pixels-
@@ -142,13 +147,18 @@ else {
     maxHeight,
     preview,
     sourceMap,
-    noMinify
+    noMinify,
+    verbose
   });
-  const fail = res => {
+  const fail = (res, url) => {
+    if (verbose)
+      log(` *404* \`${url}\``);
     res.writeHead(404);
     res.end();
   };
   const redirect = (res, url) => {
+    if (verbose)
+      log(` *302* \`${url}/index.html\``);
     res.writeHead(302, {'Location': `${url}/index.html`});
     res.end();
   };
@@ -156,7 +166,7 @@ else {
     ((req, res) => {
       const url = req.url.replace(/\/$/, '');
       if (/\.\w+(?:\?.*)?$/.test(url))
-        fail(res);
+        fail(res, url);
       else {
         exists(join(base, url, 'index.html'), exists => {
           (exists ? redirect : fail)(res, url);
@@ -166,7 +176,7 @@ else {
     ((req, res) => {
       const url = req.url.replace(/\/$/, '');
       if (/\.\w+(?:\?.*)?$/.test(url))
-        fail(res);
+        fail(res, url);
       else {
         exists(join(base, url, 'index.html'), exists => {
           if (exists)
@@ -175,8 +185,10 @@ else {
             const dir = join(base, url);
             readdir(dir, (err, files) => {
               if (err)
-                fail(res);
+                fail(res, url);
               else {
+                if (verbose)
+                  log(` *200* -listing- \`${dir}\``);
                 res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'});
                 res.write(`<!doctype html><html><head>${
                   meta
@@ -219,11 +231,11 @@ function greetings(newPort = this.address().port) {
     if (newPort != port)
       warn(`  port *${port}* not available, using *${newPort}* instead`);
     if (isServing) {
-      log(`  -serving:- ${resolve(process.cwd(), serve)} -${checks}-`);
+      log(`  -serving:- \`${resolve(process.cwd(), serve)}\` -${checks}-`);
     }
     else {
-      log(`  -source:-  ${resolve(process.cwd(), source)} -${checks}-`);
-      log(`  -cache:-   -${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}-`);
+      log(`  -source:-  \`${resolve(process.cwd(), source)}\` -${checks}-`);
+      log(`  -cache:-   \x1b[2m\`${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}\`\x1b[0m`);
     }
     let config = [];
     if (clusters)
@@ -238,6 +250,8 @@ function greetings(newPort = this.address().port) {
       config.push(`-w${maxWidth}px-`);
     if (maxHeight)
       config.push(`-h${maxHeight}px-`);
+    if (verbose)
+      config.push(`-verbose-`);
     if (config.length)
       log(`  -config:-  ${config.join('-,- ')}`);
     log(`  -visit:-   *http://localhost${newPort == 80 ? '' : `:${newPort}`}/*`);

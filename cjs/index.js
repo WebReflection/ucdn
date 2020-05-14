@@ -1,12 +1,26 @@
 'use strict';
 const {tmpdir} = require('os');
 const {join} = require('path');
+const {performance} = require('perf_hooks');
+
+const {log} = require('essential-md');
 
 const {
   compression, fallback, favicon, json, serve: justServe, serveFile, getHeaders, getPath, getURL
 } = require('ucdn-utils');
 
 const {dir, pack, stat} = require('./cache.js');
+
+const {floor} = Math;
+
+/* istanbul ignore next */
+const assetName = asset => {
+  if (/\.(br|gzip|deflate)$/.test(asset)) {
+    const {$1} = RegExp;
+    return '`' + asset.slice(0, -($1.length + 1)) + '`-.' + $1 + '-';
+  }
+  return '`' + asset + '`';
+};
 
 /* istanbul ignore next */
 const internalServerError = res => {
@@ -34,7 +48,8 @@ module.exports = ({
   noMinify,
   sourceMap,
   serve,
-  cacheTimeout
+  cacheTimeout,
+  verbose
 }) => {
   if (serve)
     return justServe(serve, cacheTimeout);
@@ -55,19 +70,34 @@ module.exports = ({
     const original = SOURCE + real;
     stat(original, cacheTimeout).then(
       ({lastModified, size}) => {
-        if (path === '/favicon.ico')
+        if (path === '/favicon.ico') {
+          /* istanbul ignore if */
+          if (verbose)
+            log(` *200* -favicon- ${original}`);
           favicon(res, original, size, headers);
+        }
         else {
           const {AcceptEncoding, ETag, Since} = getHeaders(req);
           const asset = DEST + compression(path, AcceptEncoding);
-          const create = () => {
+          const create = (time) => {
             const target = DEST + real;
             const waitForIt = target + '.wait';
-            const fail = internalServerError.bind(null, res);
+            /* istanbul ignore next */
+            const fail = () => {
+              if (verbose)
+                log(` *500* ${assetName(asset)}`);
+              internalServerError(res);
+            };
             dir(waitForIt, cacheTimeout).then(
               () => {
                 pack(asset, original, target, options, cacheTimeout).then(
                   () => {
+                    /* istanbul ignore if */
+                    if (verbose) {
+                      if (time)
+                        time = floor(performance.now() - time);
+                      log(` *200* ${time ? `-${time}ms- ` : ''}${assetName(asset)}`);
+                    }
                     readAndServe(res, asset, cacheTimeout, ETag, fail, false);
                   },
                   /* istanbul ignore next */
@@ -81,12 +111,19 @@ module.exports = ({
           json(asset, cacheTimeout).then(
             headers => {
               /* istanbul ignore else */
-              if (lastModified === headers['Last-Modified'])
+              if (lastModified === headers['Last-Modified']) {
+                /* istanbul ignore if */
+                if (verbose)
+                  log(` *304* ${assetName(asset)}`);
                 serveFile(res, asset, headers, ETag, lastModified === Since);
+              }
               else
-                create();
+                create(0);
             },
-            create
+            () => {
+              /* istanbul ignore next */
+              create(verbose ? performance.now() : 0);
+            }
           );
         }
       },
