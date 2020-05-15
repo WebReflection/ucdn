@@ -39,6 +39,7 @@ for (let
   switch (true) {
 
     // integers
+    case /^-t$/.test(argv[i]):
     case /^--cache-timeout(=\d+)?$/.test(argv[i]):
       cacheTimeout = asInt(RegExp);
       break;
@@ -52,11 +53,13 @@ for (let
     case /^--max-height(=\d+)?$/.test(argv[i]):
       maxHeight = asInt(RegExp);
       break;
+    case /^-p$/.test(argv[i]):
     case /^--port(=\d+)?$/.test(argv[i]):
       port = asInt(RegExp);
       break;
 
     // strings as paths
+    case /^-d$/.test(argv[i]):
     case /^--(?:dest|cache)(=.+)?$/.test(argv[i]):
       dest = asString(RegExp);
       notServing = true;
@@ -65,21 +68,31 @@ for (let
       serve = asString(RegExp);
       isServing = true;
       break;
+    case /^-s$/.test(argv[i]):
     case /^--source(=.+)?$/.test(argv[i]):
       source = asString(RegExp);
       notServing = true;
       break;
 
     // no value needed
+    case /^--debug$/.test(argv[i]):
+      verbose = true;
+      noMinify = true;
+      cacheTimeout = 500;
+      break;
+    case /^--no-min$/.test(argv[i]):
     case /^--no-minify$/.test(argv[i]):
       noMinify = true;
       break;
+    case /^--preview$/.test(argv[i]):
     case /^--with-preview$/.test(argv[i]):
       preview = true;
       break;
+    case /^--source-map$/.test(argv[i]):
     case /^--with-source-map$/.test(argv[i]):
       sourceMap = true;
       break;
+    case /^-v$/.test(argv[i]):
     case /^--verbose$/.test(argv[i]):
       verbose = true;
       break;
@@ -98,13 +111,14 @@ if (help || (notServing && isServing)) {
   -https://github.com/WebReflection/ucdn-
 
   *ucdn --source ./path/*
+    \`--source ./\`        -# (\`-s\`) path to serve as CDN, default current folder-
+    \`--dest /tmp\`        -# (\`-d\`) CDN cache path, default /tmp/ucdn-
+    \`--cache-timeout X\`  -# (\`-t\`) cache expiration in ms, default 300000-
+    \`--port XXXX\`        -# (\`-p\`) port to use, default 0 (any available port)-
     \`--cluster(s) X\`     -# number of forks, default 0-
-    \`--source ./\`        -# path to serve as CDN, default current folder-
-    \`--dest /tmp\`        -# CDN cache path, default /tmp/ucdn-
-    \`--cache-timeout X\`  -# cache expiration in ms, default 300000-
-    \`--port XXXX\`        -# port to use, default 0 (any available port)-
     \`--serve /path\`      -# serve a CDN ready path without any runtime-
     \`--verbose\`          -# logs operations-
+    \`--debug\`            -# 500ms cache timeout + no minification + verbose-
 
   *ucompress* options
     \`--max-width X\`      -# max images width in pixels-
