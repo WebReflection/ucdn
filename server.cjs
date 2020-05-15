@@ -172,8 +172,8 @@ else {
   };
   const redirect = (res, url) => {
     if (verbose)
-      log(` *302* \`${url}/index.html\``);
-    res.writeHead(302, {'Location': `${url}/index.html`});
+      log(` *302* \`${url}/\``);
+    res.writeHead(302, {'Location': `${url}/`});
     res.end();
   };
   const next = isServing ?
