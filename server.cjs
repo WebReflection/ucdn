@@ -214,8 +214,12 @@ else {
                   dir
                 }</h1><ul>`);
                 files.forEach(file => {
-                  if (!/^\./.test(file))
-                    res.write(`<li><a href="${join(dir, file).replace(base, '')}">${file}</a></li>`);
+                  if (!/^\./.test(file)) {
+                    let link = join(dir, file).replace(base, '');
+                    if (preview && /\.md$/i.test(link))
+                      link += '.preview.html';
+                    res.write(`<li><a href="${link}">${file}</a></li>`);
+                  }
                 });
                 res.write(`</ul></body></html>`);
                 res.end();

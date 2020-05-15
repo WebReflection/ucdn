@@ -61,7 +61,7 @@ It is possible to bootstrap a micro CDN right away via `npx ucdn`. Pass `--help`
 
 If started via `--verbose` flag, each request will be logged producing the following output example:
 
-> **200** <sub>XXms</sub> /full/path.html<sub>.gzip</sup>
+> **200** <sup><sub>XXms</sub></sup> /full/path.html<sup><sub>.gzip</sub></sup>
 >
 > **404** /full/nope.html
 >
@@ -69,7 +69,7 @@ If started via `--verbose` flag, each request will be logged producing the follo
 >
 > **404** /full/nope.html
 >
-> **304** /full/path.html<sub>.gzip</sup>
+> **304** /full/path.html<sup><sub>.gzip</sub></sup>
 >
 > **500** /full/error-during-compression
 
