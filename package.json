@@ -32,8 +32,8 @@
   "dependencies": {
     "essential-md": "^0.3.0",
     "id-promise": "^0.1.0",
-    "ucdn-utils": "^0.4.0",
-    "ucompress": "^0.15.3"
+    "ucdn-utils": "^0.4.1",
+    "ucompress": "^0.16.1"
   },
   "repository": {
     "type": "git",

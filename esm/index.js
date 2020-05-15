@@ -29,6 +29,9 @@ const internalServerError = res => {
   res.end();
 };
 
+/* istanbul ignore next */
+const noPreview = (_, md, jpg) => (md === '.md' ? md : jpg);
+
 const readAndServe = (res, asset, cacheTimeout, ETag, fail, same) => {
   json(asset, cacheTimeout).then(
     headers => {
@@ -65,7 +68,7 @@ export default ({
     const path = getURL(req);
     let real = path;
     if (preview)
-      real = real.replace(/\.preview(\.jpe?g)$/i, '$1');
+      real = real.replace(/(\.md)?\.preview(\.(?:jpe?g|html))$/i, noPreview);
     if (sourceMap)
       real = real.replace(/(\.m?js)\.(?:source\1|map)$/, '$1');
     const original = SOURCE + real;
