@@ -22,6 +22,7 @@ let help = false;
 let preview = false;
 let isServing = false;
 let notServing = false;
+let noImport = false;
 let noMinify = false;
 let sourceMap = false;
 let verbose = false;
@@ -80,6 +81,9 @@ for (let
       noMinify = true;
       cacheTimeout = 500;
       break;
+    case /^--no-imports?$/.test(argv[i]):
+      noImport = true;
+      break;
     case /^--no-min$/.test(argv[i]):
     case /^--no-minify$/.test(argv[i]):
       noMinify = true;
@@ -125,6 +129,7 @@ if (help || (notServing && isServing)) {
     \`--max-height X\`     -# max images height in pixels-
     \`--with-preview\`     -# enables *.preview.jpeg images-
     \`--with-source-map\`  -# enables source maps-
+    \`--no-import\`        -# avoid resolving imports-
     \`--no-minify\`        -# do not minify sources-
 
   *aliases*
@@ -161,6 +166,7 @@ else {
     maxHeight,
     preview,
     sourceMap,
+    noImport,
     noMinify,
     verbose
   });
@@ -262,6 +268,8 @@ function greetings(newPort = this.address().port) {
       config.push('-preview-');
     if (sourceMap)
       config.push('-source map-');
+    if (noImport)
+      config.push('-no import-');
     if (noMinify)
       config.push('-no minification-');
     if (maxWidth)
