@@ -12,9 +12,12 @@ const cdn = require('./cjs/index.js');
 
 const {fork, isMaster} = cluster;
 
+const cwd = process.cwd();
+
 let port = 8080;
 let cacheTimeout = 300000;
 let clusters = 0;
+let api = '';
 let serve = '.';
 let source = '.';
 let dest = '';
@@ -60,6 +63,9 @@ for (let
       break;
 
     // strings as paths
+    case /^--api(=.+)?$/.test(argv[i]):
+      api = asString(RegExp);
+      break;
     case /^-d$/.test(argv[i]):
     case /^--(?:dest|cache)(=.+)?$/.test(argv[i]):
       dest = asString(RegExp);
@@ -123,6 +129,7 @@ if (help || (notServing && isServing)) {
     \`--serve /path\`      -# serve a CDN ready path without any runtime-
     \`--verbose\`          -# logs operations-
     \`--debug\`            -# 500ms cache timeout + no minification + verbose-
+    \`--api ./api\`        -# use files in folder as API fallback-
 
   *ucompress* options
     \`--max-width X\`      -# max images width in pixels-
@@ -155,11 +162,13 @@ else if (isMaster && 0 < clusters) {
   });
 }
 else {
-  const base = resolve(process.cwd(), source);
+  if (api !== '')
+    api = resolve(cwd, api);
+  const base = resolve(cwd, source);
   const meta = '<meta name="viewport" content="width=device-width,initial-scale=1.0"></meta>';
   const style = '<style>body{font-family:sans-serif;}a,a:visited{color:initial;}h1{font-size:initial;}</style>';
   const handler = cdn(isServing ? {cacheTimeout, serve} : {
-    dest: dest ? resolve(process.cwd(), dest) : '',
+    dest: dest ? resolve(cwd, dest) : '',
     source: base,
     cacheTimeout,
     maxWidth,
@@ -170,6 +179,22 @@ else {
     noMinify,
     verbose
   });
+  const checkAPI = (req, res, url) => {
+    const js = join(api, `${url.slice(1)}.js`);
+    exists(js, exists => {
+      if (exists) {
+        try {
+          require(js)(req, res);
+        }
+        catch (o_O) {
+          console.error(o_O);
+          fail(res, url);
+        }
+      }
+      else
+        fail(res, url);
+    });
+  };
   const fail = (res, url) => {
     if (verbose)
       log(` *404* \`${url}\``);
@@ -188,8 +213,13 @@ else {
       if (/\.\w+(?:\?.*)?$/.test(url))
         fail(res, url);
       else {
-        exists(join(base, url, 'index.html'), exists => {
-          (exists ? redirect : fail)(res, url);
+        exists(join(base, url.slice(1), 'index.html'), exists => {
+          if (exists)
+            redirect(res, url);
+          else if (api !== '')
+            checkAPI(req, res, url);
+          else
+            fail(res, url);
         });
       }
     }) :
@@ -198,14 +228,18 @@ else {
       if (/\.\w+(?:\?.*)?$/.test(url))
         fail(res, url);
       else {
-        exists(join(base, url, 'index.html'), exists => {
+        exists(join(base, url.slice(1), 'index.html'), exists => {
           if (exists)
             redirect(res, url);
           else {
-            const dir = join(base, url);
+            const dir = join(base, url.slice(1));
             readdir(dir, (err, files) => {
-              if (err)
-                fail(res, url);
+              if (err) {
+                if (api !== '')
+                  checkAPI(req, res, url);
+                else
+                  fail(res, url);
+              }
               else {
                 if (verbose)
                   log(` *200* -listing- \`${dir}\``);
@@ -255,12 +289,14 @@ function greetings(newPort = this.address().port) {
     if (newPort != port)
       warn(`  port *${port}* not available, using *${newPort}* instead`);
     if (isServing) {
-      log(`  -serving:- \`${resolve(process.cwd(), serve)}\` -${checks}-`);
+      log(`  -serving:- \`${resolve(cwd, serve)}\` -${checks}-`);
     }
     else {
-      log(`  -source:-  \`${resolve(process.cwd(), source)}\` -${checks}-`);
-      log(`  -cache:-   \x1b[2m\`${dest ? resolve(process.cwd(), dest) : '/tmp/ucdn'}\`\x1b[0m`);
+      log(`  -source:-  \`${resolve(cwd, source)}\` -${checks}-`);
+      log(`  -cache:-   \x1b[2m\`${dest ? resolve(cwd, dest) : '/tmp/ucdn'}\`\x1b[0m`);
     }
+    if (api !== '')
+      log(`  -api:-     \x1b[2m\`${api}\`\x1b[0m`);
     let config = [];
     if (clusters)
       config.push(`${clusters} -forks-`);

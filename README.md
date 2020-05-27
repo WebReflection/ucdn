@@ -9,7 +9,7 @@
 A [ucompress](https://github.com/WebReflection/ucompress#readme) based utility that accepts a configuration object with a `source` path, an optional `dest`, which fallbacks to the _temp_ folder, plus eventually extra `headers` property to pollute headers via `allow-origin` among other details.
 
 
-### Example
+## Example
 
 The following example will serve every file within any folder in the `source` directory, automatically optimizing on demand all operations, including the creation of _brotli_, _gzip_, or _deflate_.
 
@@ -53,7 +53,7 @@ app.listen(8080);
 
 
 
-### As binary file
+## As binary file
 
 It is possible to bootstrap a micro CDN right away via `npx ucdn`. Pass `--help` to see options.
 
@@ -80,7 +80,34 @@ On the other hand, whenever a file was already known, it will be served like a *
 Basically, the status reflects the *cdn* and *not* whenever a browser is requesting new content or not.
 
 
-### Performance
+
+### About `API`
+
+If _ucdn_ is started with an `--api ./path` flag, files in that folder will be used as fallback.
+
+The _API_ folder does not need to be reachable, or included, within static assets (_source_).
+
+```js
+// @file ./api/hello.js
+// @start ucdn --api ./api --source ./public
+
+const headers = {'content-type': 'text/html;charset=utf-8'};
+
+// export a function that will receive
+// the request and response from the server
+module.exports = (req, res) => {
+  res.writeHead(200, headers);
+  res.end('<h1>Hello API!</h1>');
+};
+```
+
+Please note that currently, and for the time being, files in _API_ folder must be _CommonJS_ compatible, and with a `.js` extension.
+
+If your project uses _ESM_ instead, remember to put `{"type":"commonjs"}` inside the `./api/package.json` file.
+
+
+
+## Performance
 
 Differently from other solutions, the compression is done once, and once only, per each required static asset, reducing both _RAM_ and _CPU_ overhead in the long run, but being a bit slower than express static, with or without compressed outcome, in the very first time a file, that hasn't been optimized yet, is requested.
 
@@ -101,6 +128,6 @@ In every other case, using a minute, up to 10 minutes, as cache timeout, is rath
 
 
 
-### Compatibility
+## Compatibility
 
 Beside own dependencies that might have different compatibility requirements, this module works in NodeJS 10 or higher.
