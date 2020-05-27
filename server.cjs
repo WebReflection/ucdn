@@ -14,6 +14,8 @@ const {fork, isMaster} = cluster;
 
 const cwd = process.cwd();
 
+const apiCache = new Map;
+
 let port = 8080;
 let cacheTimeout = 300000;
 let clusters = 0;
@@ -162,7 +164,8 @@ else if (isMaster && 0 < clusters) {
   });
 }
 else {
-  if (api !== '')
+  const hasAPI = api !== '';
+  if (hasAPI)
     api = resolve(cwd, api);
   const base = resolve(cwd, source);
   const meta = '<meta name="viewport" content="width=device-width,initial-scale=1.0"></meta>';
@@ -184,7 +187,9 @@ else {
     exists(js, exists => {
       if (exists) {
         try {
-          require(js)(req, res);
+          const module = require(js);
+          module(req, res);
+          apiCache.set(url, module);
         }
         catch (o_O) {
           console.error(o_O);
@@ -210,13 +215,15 @@ else {
   const next = isServing ?
     ((req, res) => {
       const url = req.url.replace(/\/$/, '');
-      if (/\.\w+(?:\?.*)?$/.test(url))
+      if (hasAPI && apiCache.has(url))
+        apiCache.get(url)(req, res);
+      else if (/\.\w+(?:\?.*)?$/.test(url))
         fail(res, url);
       else {
         exists(join(base, url.slice(1), 'index.html'), exists => {
           if (exists)
             redirect(res, url);
-          else if (api !== '')
+          else if (hasAPI)
             checkAPI(req, res, url);
           else
             fail(res, url);
@@ -225,7 +232,9 @@ else {
     }) :
     ((req, res) => {
       const url = req.url.replace(/\/$/, '');
-      if (/\.\w+(?:\?.*)?$/.test(url))
+      if (hasAPI && apiCache.has(url))
+        apiCache.get(url)(req, res);
+      else if (/\.\w+(?:\?.*)?$/.test(url))
         fail(res, url);
       else {
         exists(join(base, url.slice(1), 'index.html'), exists => {
@@ -235,7 +244,7 @@ else {
             const dir = join(base, url.slice(1));
             readdir(dir, (err, files) => {
               if (err) {
-                if (api !== '')
+                if (hasAPI)
                   checkAPI(req, res, url);
                 else
                   fail(res, url);
