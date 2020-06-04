@@ -21,7 +21,7 @@
   "devDependencies": {
     "ascjs": "^4.0.1",
     "coveralls": "^3.1.0",
-    "nyc": "^15.0.1"
+    "nyc": "^15.1.0"
   },
   "module": "./esm/index.js",
   "type": "module",
@@ -30,10 +30,10 @@
     "default": "./cjs/index.js"
   },
   "dependencies": {
-    "essential-md": "^0.3.0",
+    "essential-md": "^0.3.1",
     "id-promise": "^0.1.0",
-    "ucdn-utils": "^0.4.5",
-    "ucompress": "^0.17.0"
+    "ucdn-utils": "^0.4.6",
+    "ucompress": "^0.17.2"
   },
   "repository": {
     "type": "git",
