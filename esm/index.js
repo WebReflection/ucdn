@@ -71,7 +71,7 @@ export default ({
       real = real.replace(/(\.md)?\.preview(\.(?:jpe?g|html))$/i, noPreview);
     if (sourceMap)
       real = real.replace(/(\.m?js)\.(?:source\1|map)$/, '$1');
-    const original = SOURCE + real;
+    const original = SOURCE + real.replace(/\/web_modules\//g, '/node_modules/');
     stat(original, cacheTimeout).then(
       ({lastModified, size}) => {
         if (path === '/favicon.ico') {
