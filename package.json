@@ -32,7 +32,7 @@
   "dependencies": {
     "essential-md": "^0.3.1",
     "id-promise": "^0.1.0",
-    "ucdn-utils": "^0.4.7",
+    "ucdn-utils": "^0.4.9",
     "ucompress": "^0.18.1"
   },
   "repository": {
