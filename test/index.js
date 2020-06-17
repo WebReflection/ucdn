@@ -212,9 +212,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 684, 'correct length');
+        console.assert(headers['Content-Length'] === 685, 'correct length');
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
-        console.assert(headers['ETag'] === '"2ac-Kjd8hZLZYg0i+eGt"', 'correct ETag');
+        console.assert(headers['ETag'] === '"2ad-3mnI/A3xlg3wSqdM"', 'correct ETag');
         resolve(path);
       })
     );
@@ -232,9 +232,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 4849, 'correct length');
+        console.assert(headers['Content-Length'] === 4824, 'correct length');
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
-        console.assert(headers['ETag'] === '"12f1-LnIwfVeSrbm+5DDk"', 'correct ETag');
+        console.assert(headers['ETag'] === '"12d8-iQ9LCsVs0hfWT+nl"', 'correct ETag');
         resolve(path);
       })
     );
@@ -260,9 +260,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 81, 'correct length');
+        console.assert(headers['Content-Length'] === 84, 'correct length');
         console.assert(headers['Content-Type'] === 'text/html; charset=UTF-8', 'correct mime');
-        console.assert(headers['ETag'] === '"51-W34alD6J4ahT6I7m"', 'correct ETag');
+        console.assert(headers['ETag'] === '"54-jtoG/c9bRSWQB+gy"', 'correct ETag');
         resolve(path);
       })
     );
