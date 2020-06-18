@@ -249,6 +249,26 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
   })
   .then(name => new Promise(resolve => {
     console.log(name);
+    const path = '/package.json';
+    const request = createRequest(path);
+    request.headers.acceptEncoding = 'br';
+    requestHandler(
+      request,
+      createResponse(operations => {
+        console.assert(operations.length === 2, 'correct amount of operations');
+        const [code, headers] = operations.shift();
+        const content = operations.shift();
+        console.assert(content.length < 1, 'correct content');
+        console.assert(code === 200, 'correct code');
+        console.assert(headers['Content-Length'] === 454, 'correct length');
+        console.assert(headers['Content-Type'] === 'application/json; charset=UTF-8', 'correct mime');
+        console.assert(headers['ETag'] === '"1c6-c5WYF55FEIj0B3QU"', 'correct ETag');
+        resolve(path);
+      })
+    );
+  }))
+  .then(name => new Promise(resolve => {
+    console.log(name);
     const path = '/index.html';
     const request = createRequest(path);
     request.headers.acceptEncoding = 'br';
