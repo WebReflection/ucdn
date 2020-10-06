@@ -33,7 +33,7 @@
     "essential-md": "^0.3.1",
     "id-promise": "^0.3.0",
     "ucdn-utils": "^0.5.0",
-    "ucompress": "^0.21.0"
+    "ucompress": "^0.21.2"
   },
   "repository": {
     "type": "git",
