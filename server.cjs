@@ -119,7 +119,7 @@ for (let
 }
 
 if (debug)
-  rmdir(dest ? resolve(cwd, dest) : '/tmp/ucdn', {recursive: true}, Object);
+  rmdir(dest ? resolve(cwd, dest) : '/tmp/ucdn', {recursive: true, force: true}, Object);
 
 const header = `# micro cdn v${require(join(__dirname, 'package.json')).version}`;
 if (help || (notServing && isServing)) {
