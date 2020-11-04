@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const cluster = require('cluster');
-const {readdir, exists, rmdir} = require('fs');
+const {readdir, exists, rm, rmdir} = require('fs');
 const {createServer} = require('http');
 const {cpus, networkInterfaces} = require('os');
 const {join, resolve} = require('path');
@@ -119,7 +119,7 @@ for (let
 }
 
 if (debug)
-  rmdir(dest ? resolve(cwd, dest) : '/tmp/ucdn', {recursive: true, force: true}, Object);
+  (rm || rmdir)(dest ? resolve(cwd, dest) : '/tmp/ucdn', {recursive: true, force: true}, Object);
 
 const header = `# micro cdn v${require(join(__dirname, 'package.json')).version}`;
 if (help || (notServing && isServing)) {
