@@ -212,9 +212,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 685, 'correct length');
+        console.assert(headers['Content-Length'] === 686, 'correct length');
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
-        console.assert(headers['ETag'] === '"2ad-3mnI/A3xlg3wSqdM"', 'correct ETag');
+        console.assert(headers['ETag'] === '"2ae-e5yCsJisKX7bkYDy"', 'correct ETag');
         resolve(path);
       })
     );
@@ -232,9 +232,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 4824, 'correct length');
+        console.assert(headers['Content-Length'] === 4816, 'correct length');
         console.assert(headers['Content-Type'] === 'image/jpeg', 'correct mime');
-        console.assert(headers['ETag'] === '"12d8-iQ9LCsVs0hfWT+nl"', 'correct ETag');
+        console.assert(headers['ETag'] === '"12d0-2VQbuqh6MestOXlN"', 'correct ETag');
         resolve(path);
       })
     );
@@ -305,9 +305,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 2478, 'correct length');
+        console.assert(headers['Content-Length'] === 3405, 'correct length');
         console.assert(headers['Content-Type'] === 'image/svg+xml', 'correct mime');
-        console.assert(headers['ETag'] === '"9ae-WAa0uuWT+I9+hj77"', 'correct ETag');
+        console.assert(headers['ETag'] === '"d4d-5Qa/5/7tPdtEx1VK"', 'correct ETag');
         done();
       })
     );
@@ -319,9 +319,9 @@ Promise.resolve('\x1b[1mµcdn\x1b[0m')
         const content = operations.shift();
         console.assert(content.length < 1, 'correct content');
         console.assert(code === 200, 'correct code');
-        console.assert(headers['Content-Length'] === 2478, 'correct length');
+        console.assert(headers['Content-Length'] === 3405, 'correct length');
         console.assert(headers['Content-Type'] === 'image/svg+xml', 'correct mime');
-        console.assert(headers['ETag'] === '"9ae-WAa0uuWT+I9+hj77"', 'correct ETag');
+        console.assert(headers['ETag'] === '"d4d-5Qa/5/7tPdtEx1VK"', 'correct ETag');
         done();
       })
     );

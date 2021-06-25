@@ -2,9 +2,9 @@
 const {mkdir, stat: fStat} = require('fs');
 const {dirname} = require('path');
 
-const idPromise = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('id-promise'));
-const ucompress = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('ucompress'));
-const umap = (m => m.__esModule ? /* istanbul ignore next */ m.default : /* istanbul ignore next */ m)(require('umap'));
+const idPromise = (m => /* c8 ignore start */ m.__esModule ? m.default : m /* c8 ignore stop */)(require('id-promise'));
+const ucompress = (m => /* c8 ignore start */ m.__esModule ? m.default : m /* c8 ignore stop */)(require('ucompress'));
+const umap = (m => /* c8 ignore start */ m.__esModule ? m.default : m /* c8 ignore stop */)(require('umap'));
 const {clear, create, json, _json} = require('ucdn-utils');
 
 const _dir = new Map;

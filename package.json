@@ -19,7 +19,7 @@
   "author": "Andrea Giammarchi",
   "license": "ISC",
   "devDependencies": {
-    "ascjs": "^4.0.1",
+    "ascjs": "^5.0.1",
     "coveralls": "^3.1.0",
     "nyc": "^15.1.0"
   },
@@ -32,8 +32,8 @@
   "dependencies": {
     "essential-md": "^0.3.1",
     "id-promise": "^0.3.0",
-    "ucdn-utils": "^0.5.1",
-    "ucompress": "^0.21.2"
+    "ucdn-utils": "^0.5.2",
+    "ucompress": "^0.22.1"
   },
   "repository": {
     "type": "git",
